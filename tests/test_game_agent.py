@@ -19,7 +19,7 @@ class IsolationTest(unittest.TestCase):
         reload(game_agent)
         # self.player1 = "Player1"
         # self.player2 = "Player2"
-        self.player1 = game_agent.MinimaxPlayer()
+        self.player1 = game_agent.AlphaBetaPlayer()
         self.player2 = sample_players.RandomPlayer()
         self.game = isolation.Board(self.player1, self.player2)
 
@@ -28,7 +28,7 @@ class IsolationTest(unittest.TestCase):
 
         #Player 1 is active to start so he plays this move
 
-        minmaxplayer=game_agent.MinimaxPlayer()
+        minmaxplayer=game_agent.AlphaBetaPlayer()
         RandomPlayer=sample_players.RandomPlayer()
 
         self.game.apply_move((2, 3))
