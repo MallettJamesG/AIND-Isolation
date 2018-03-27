@@ -69,7 +69,7 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # NEED TO CHANGE THIS ONE
+    # This returns a score that returns a score based on the difference of your position from the centre and your oppenents*2
 
 
     if game.is_loser(player):
@@ -79,8 +79,14 @@ def custom_score_2(game, player):
         return float("inf")
 
     w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-    return float((h - y)**2 + (w - x)**2)
+    y_player, x_player = game.get_player_location(player)
+    player_dist=(h - y_player)**2 + (w - x_player)**2
+
+    opponent=game.get_opponent(player)
+    y_opp,x_opp=game.get_player_location(opponent)
+    opp_dist=(h - y_opp)**2 + (w - x_opp)**2
+
+    return float(player_dist-2*opp_dist)
 
 
 def custom_score_3(game, player):
@@ -105,9 +111,10 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
 
-    # NEEEEED TO CHANGE THIS ONE
+
+    # Returns a score dependant on distance from the centre weighted by the difference between
+    # players moves and opponents moves
     if game.is_loser(player):
         return float("-inf")
 
@@ -116,11 +123,14 @@ def custom_score_3(game, player):
 
     w, h = game.width / 2., game.height / 2.
     y, x = game.get_player_location(player)
-    return float((h - y)**2 + (w - x)**2)
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    difference=own_moves-opp_moves
+    return float((h - y)**2 + (w - x)**2)*difference
 
 
-
-    raise NotImplementedError
 
 
 class IsolationPlayer:
@@ -145,7 +155,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score_3, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
