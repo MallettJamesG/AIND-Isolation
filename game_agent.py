@@ -368,7 +368,11 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.alphabeta(game, self.search_depth)
+
+            # best_move = self.alphabeta(game, self.search_depth)
+
+            for iter in range(self.search_depth):
+                best_move = self.alphabeta(game, iter)
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -429,7 +433,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         # v = self.max_value(game, depth,alpha,beta)
 
         for m in game.get_legal_moves():
-            score = self.min_value(game.forecast_move(m), depth-1,alpha,beta)
+            score = self.min_value(game.forecast_move(m), depth,alpha,beta)
             if score>best_score:
                 best_score=score
                 best_move=m
