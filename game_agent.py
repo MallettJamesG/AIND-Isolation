@@ -78,16 +78,31 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    w, h = game.width / 2., game.height / 2.
+    # w, h = game.width / 2., game.height / 2.
+    # y_player, x_player = game.get_player_location(player)
+    # player_dist=(h - y_player)**2 + (w - x_player)**2
+    #
+    # opponent=game.get_opponent(player)
+    # y_opp,x_opp=game.get_player_location(opponent)
+    # opp_dist=(h - y_opp)**2 + (w - x_opp)**2
+    #
+    # return float(player_dist-2*opp_dist)
+
+    # Want to count the number of open spaces within 3 block radius of the spaces
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
     y_player, x_player = game.get_player_location(player)
-    player_dist=(h - y_player)**2 + (w - x_player)**2
-
-    opponent=game.get_opponent(player)
-    y_opp,x_opp=game.get_player_location(opponent)
-    opp_dist=(h - y_opp)**2 + (w - x_opp)**2
-
-    return float(player_dist-2*opp_dist)
-
+    spaces_in_range=[]
+    score = 0
+    for x in range(-2,2):
+        if x >=0 and x<=game.width:
+            for y in range(-2,2):
+                if y>=0 and y<=game.height:
+                    spaces_in_range.append((x,y))
+    score+=float(len([spot for spot in spaces_in_range if spot in game.get_blank_spaces()]))
+    return score*float(own_moves - 2*opp_moves)
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -201,15 +216,19 @@ class MinimaxPlayer(IsolationPlayer):
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-        best_move = (-1, -1)
+        moves=game.get_legal_moves()
+        if not moves:
+            best_move = (-1, -1)
+        else:
+            best_move=moves[0]
+            try:
 
-        try:
-            # The try/except block will automatically catch the exception
-            # raised when the timer is about to expire.
-            return self.minimax(game, self.search_depth)
+                # The try/except block will automatically catch the exception
+                # raised when the timer is about to expire.
+                return self.minimax(game, self.search_depth)
 
-        except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            except SearchTimeout:
+                pass  # Handle any actions required after timeout as needed
 
         # Return the best move from the last completed search iteration
         return best_move
@@ -365,17 +384,23 @@ class AlphaBetaPlayer(IsolationPlayer):
         # in case the search fails due to timeout
         best_move = (-1, -1)
 
-        try:
+
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
 
             # best_move = self.alphabeta(game, self.search_depth)
-
-            for iter in range(self.search_depth):
-                best_move = self.alphabeta(game, iter)
-
-        except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+        moves=game.get_legal_moves()
+        if not moves:
+            best_move = (-1, -1)
+        else:
+            for iter in range(1000000):
+                # print("Iter",iter)
+                try:
+                    # print("In the try")
+                    best_move = self.alphabeta(game, iter)
+                    # print("got a new best move in the try")
+                except SearchTimeout:
+                    break  # Handle any actions required after timeout as needed
 
         # Return the best move from the last completed search iteration
         return best_move
@@ -433,7 +458,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         # v = self.max_value(game, depth,alpha,beta)
 
         for m in game.get_legal_moves():
-            score = self.min_value(game.forecast_move(m), depth,alpha,beta)
+            # print("here")
+            score = self.min_value(game.forecast_move(m), depth-1,alpha,beta)
+            # print("here")
+            if score>=beta:
+                return m
+            alpha=max(alpha,score)
             if score>best_score:
                 best_score=score
                 best_move=m
@@ -450,7 +480,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.terminal_test(game):
             return float("-inf")  # by assumption 2
 
-        if depth==0:
+        if depth<=0:
             score = self.score(game, self)
             # print("Score",score)
             return score
@@ -477,8 +507,9 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         if self.terminal_test(game):
             return float("+inf")  # by Assumption 2
-
-        if depth==0:
+        # print("depth in min",depth)
+        if depth<=0:
+            # print("Going to call the self.score in Min")
             score = self.score(game, self)
             return score
 
